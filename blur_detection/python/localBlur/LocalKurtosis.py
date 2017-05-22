@@ -19,6 +19,7 @@ def LocalKurtosis(img,patchsize):
     dy_col = im2col(dy,[patchsize,patchsize])
     dy_col = dy_col / np.sum(dy_col,1,keepdims=True)
 
+    # Compute Kurtosis
     normXsquare = np.square(dx_col - np.mean(dx_col))
     normYsquare = np.square(dy_col - np.mean(dy_col))
 
@@ -28,6 +29,7 @@ def LocalKurtosis(img,patchsize):
     qx = np.reshape(qx, [im_height-patchsize+1, im_width-patchsize+1])
     qy = np.reshape(qy, [im_height-patchsize+1, im_width-patchsize+1])
 
+    # Normalize for output
     qx = np.log(np.pad(qx,offset,mode='edge'))
     qy = np.log(np.pad(qy,offset,mode='edge'))
 
