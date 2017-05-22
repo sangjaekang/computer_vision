@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from likematlab import im2col
 
 def LocalKurtosis(img,patchsize):
     img_height,img_width = img.shape
@@ -37,16 +38,3 @@ def LocalKurtosis(img,patchsize):
     qy[np.isnan(qy)] = np.min(np.min(qy[~np.isnan(qy)]))
 
     return np.minimum(qx,qy)
-
-def im2col(img, BSZ):
-    #http://stackoverflow.com/questions/30109068/implement-matlabs-im2col-sliding-in-python
-    img = np.transpose(img)
-    m,n = img.shape
-    s0, s1 = img.strides
-    nrows = m-BSZ[0]+1
-    ncols = n-BSZ[1]+1
-    shp = BSZ[0],BSZ[1],nrows,ncols
-    strd = s0,s1,s0,s1
-
-    result = np.lib.stride_tricks.as_strided(img, shape=shp, strides=strd)
-    return result.reshape(BSZ[0]*BSZ[1],-1)[:,::1]
