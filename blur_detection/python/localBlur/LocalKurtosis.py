@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from likematlab import im2col
+from scipy import stats
 
 def LocalKurtosis(img,patchsize):
     img_height,img_width = img.shape
@@ -10,31 +11,30 @@ def LocalKurtosis(img,patchsize):
     y_start = offset+1; y_end = im_height-offset;
     datasize = (x_end-x_start+1)*(y_end-y_start+1)
 
-    # Compute image gradient
-    dx = np.c_[np.diff(img),-img[:,-1]]
-    dy = np.r_['0,2',np.diff(img,axis=0),-img[-1,:]]
+    # calculate image gradient
+    sobelx = cv2.Sobel(img,cv2.CV_64F,1,0,ksize=5)
+    sobely = cv2.Sobel(img,cv2.CV_64F,0,1,ksize=5)
 
-    # Rearrange image to patches
-    dx_col = im2col(dx,[patchsize,patchsize])
-    dx_col = dx_col / np.sum(dx_col,1,keepdims=True)
-    dy_col = im2col(dy,[patchsize,patchsize])
-    dy_col = dy_col / np.sum(dy_col,1,keepdims=True)
+    sobelx_col = im2col(sobelx,[patchsize,patchsize])
+    sums_dx_col = np.sum(sobelx_col,0,keepdims=True)
+    sums_dx_col[sums_dx_col == 0] = np.nan
+    sobelx_col = sobelx_col / sums_dx_col
 
-    # Compute Kurtosis
-    normXsquare = np.square(dx_col - np.mean(dx_col))
-    normYsquare = np.square(dy_col - np.mean(dy_col))
+    sobely_col = im2col(sobely,[patchsize,patchsize])
+    sums_dy_col = np.sum(sobely_col,0,keepdims=True)
+    sums_dy_col[sums_dy_col == 0] = np.nan
+    sobely_col = sobely_col / sums_dy_col
 
-    qx = np.mean(np.square(normXsquare),axis=0,keepdims=True) / np.square(np.mean(normXsquare,axis=0,keepdims=True))
-    qy = np.mean(np.square(normYsquare),axis=0,keepdims=True) / np.square(np.mean(normYsquare,axis=0,keepdims=True))
+    # calculate kurtosis
+    dx_kurtosis = stats.kurtosis(sobelx_col,axis=0,fisher=False)
+    dy_kurtosis = stats.kurtosis(sobely_col,axis=0,fisher=False)
 
-    qx = np.reshape(qx, [im_height-patchsize+1, im_width-patchsize+1])
-    qy = np.reshape(qy, [im_height-patchsize+1, im_width-patchsize+1])
+    dx_kurtosis = np.reshape(dx_kurtosis, [im_width-patchsize+1, im_height-patchsize+1])
+    dy_kurtosis = np.reshape(dy_kurtosis, [im_width-patchsize+1, im_height-patchsize+1])
 
-    # Normalize for output
-    qx = np.log(np.pad(qx,offset,mode='edge'))
-    qy = np.log(np.pad(qy,offset,mode='edge'))
+    dx_kurtosis = np.log(np.pad(dx_kurtosis,offset,mode='edge'))
+    dy_kurtosis = np.log(np.pad(dy_kurtosis,offset,mode='edge'))
 
-    qx[np.isnan(qx)] = np.min(np.min(qx[~np.isnan(qx)]))
-    qy[np.isnan(qy)] = np.min(np.min(qy[~np.isnan(qy)]))
+    result = np.transpose(np.minimum(dx_kurtosis,dy_kurtosis))
 
-    return np.minimum(qx,qy)
+    return result
