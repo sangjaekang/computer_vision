@@ -46,3 +46,34 @@ def EM_GMM(X):
 
 def GaussianProb(XxX, V):
     return np.exp(-(XxX)/(2*V)) / np.sqrt(2*np.pi*V)
+
+def GenerateF(height,width):
+    kheight = range(1,int(height)+1)
+    kwidth  = range(1,int(width)+1)
+    [u,v] = np.meshgrid(kwidth,kheight)
+    f = np.hypot(u, v)
+    C = np.unique(f)
+    f = np.round(f)
+    return (f,C)
+
+def calculateSf(s, C, f):
+    sf = np.zeros(C.shape)
+    for i in range(np.size(C)):
+        sf[i] = np.sum(s[f==C[i]])
+    return sf
+
+def GenerateSf(im, f, C, half_height, half_width):
+    height, width = im.shape
+    s = np.abs(np.fft.fft2(im))
+    s = np.square(s[0:half_height,0:half_width]) / (half_height * half_width)
+    sf = calculateSf(s, C, f)
+    return sf
+
+def rearrange(C, C_new, f):
+    data = np.zeros(C_new.shape)
+    idx = 0
+    for i in range(len(f)):
+        if (C[i] >= C_new[idx+1]):
+            idx = idx+1
+        data[idx] = data[idx] + f[i]
+    return data

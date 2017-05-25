@@ -27,9 +27,10 @@ def GradientHistogramSpan(img, patchsize):
 
         sigma1[0,i] = s1
 
-    q = np.reshape(sigma1, [im_height-patchsize+1,im_width-patchsize+1])
-    q = q[4:(im_height-patchsize+1-3),4:(im_width-patchsize+1-3)]
+    q = np.reshape(sigma1, [im_width-patchsize+1,im_height-patchsize+1])
+    q = q[4:(im_width-patchsize+1-3),4:(im_height-patchsize+1-3)]
     q = np.pad(q,offset+3,'edge')
+    q = np.transpose(q)
 
     return q
 
