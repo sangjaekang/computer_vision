@@ -1,10 +1,10 @@
 import cv2
 import numpy as np
-from likematlab import im2col, GenerateF, calculateSf, GenerateSf, rearrange
+from .likematlab import im2col, GenerateF, calculateSf, GenerateSf, rearrange
 
 def LocalPowerSpectrumSlope(img,patchsize):
     im_height, im_width = img.shape
-    offset = (patchsize - 1)/2
+    offset = int((patchsize - 1)/2)
 
     [If, IC] = GenerateF(offset,offset)
     IC_log = np.log(IC)

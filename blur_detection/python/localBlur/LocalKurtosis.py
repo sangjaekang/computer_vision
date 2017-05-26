@@ -1,11 +1,11 @@
 import cv2
 import numpy as np
-from likematlab import im2col
+from .likematlab import im2col
 from scipy import stats
 
 def LocalKurtosis(img,patchsize):
-    img_height,img_width = img.shape
-    offset = (patchsize-1)/2
+    im_height,im_width = img.shape
+    offset = int((patchsize-1)/2)
 
     x_start = offset+1; x_end = im_width-offset;
     y_start = offset+1; y_end = im_height-offset;

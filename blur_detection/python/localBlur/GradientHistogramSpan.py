@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from likematlab import EM_GMM, im2col
+from .likematlab import EM_GMM, im2col
 
 def GradientHistogramSpan(img, patchsize):
     im_height, im_width = img.shape
@@ -28,7 +28,7 @@ def GradientHistogramSpan(img, patchsize):
         sigma1[0,i] = s1
 
     q = np.reshape(sigma1, [im_width-patchsize+1,im_height-patchsize+1])
-    q = q[4:(im_width-patchsize+1-3),4:(im_height-patchsize+1-3)]
+    q = q[3:(im_width-patchsize+1-3),3:(im_height-patchsize+1-3)]
     q = np.pad(q,offset+3,'edge')
     q = np.transpose(q)
 
