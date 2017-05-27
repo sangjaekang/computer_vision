@@ -40,7 +40,8 @@ def main(raw_image, gt_image, output_path):
     data[:,2] = np.ravel(q3[y_start:y_end+1,x_start:x_end+1])
 
     x = posterior(data,params,prior,11)
-    output_file = output_path +  raw_image.split('/')[-1]
+    x = np.pad(x.reshape(im_height-2*offset,im_width-2*offset),offset,'reflect')
+    output_file = output_path + raw_image.split('/')[-1]
     cv2.imwrite(output_file,x)
 
     return x
