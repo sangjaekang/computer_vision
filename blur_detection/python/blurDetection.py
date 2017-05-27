@@ -31,7 +31,7 @@ def main(raw_image, gt_image, output_path):
     q1 = LocalKurtosis.LocalKurtosis(img, patchsize)
     print("{}-GradientHistogramSpan doing...".format(raw_image))
     q2 = GradientHistogramSpan.GradientHistogramSpan(img, patchsize)
-    print("{}-LocalPowerSpectrumSlope doing...".format(arg1))
+    print("{}-LocalPowerSpectrumSlope doing...".format(raw_image))
     q3 = LocalPowerSpectrumSlope.LocalPowerSpectrumSlope(img, patchsize)
 
     data = np.zeros((datasize,3))
