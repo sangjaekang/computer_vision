@@ -18,9 +18,6 @@ def main(raw_image, gt_image, output_path):
     img = cv2.normalize(img.astype('double'), None, 0.0, 1.0, cv2.NORM_MINMAX)
     patchsize = 11
 
-    img_gt = cv2.imread(gt_image, cv2.IMREAD_GRAYSCALE)
-    img_gt[img_gt==255] = 1
-
     im_height, im_width = img.shape
     offset = int((patchsize -1)/2)
     x_start = offset+1; x_end = im_width-offset;
@@ -72,6 +69,35 @@ def posterior(data, params, prior, patchsize):
             result[i] = 1
 
     return result
+
+
+def demo(raw_image):
+    img = cv2.cvtColor(raw_image, cv2.COLOR_BGR2GRAY)
+    img = cv2.normalize(img.astype('double'), None, 0.0, 1.0, cv2.NORM_MINMAX)
+    patchsize = 11
+
+    im_height, im_width = img.shape
+    offset = int((patchsize -1)/2)
+    x_start = offset+1; x_end = im_width-offset;
+    y_start = offset+1; y_end = im_height-offset;
+    datasize = (x_end-x_start+1)*(y_end-y_start+1)
+
+    print("demo-Localkurtosis doing...")
+    q1 = LocalKurtosis.LocalKurtosis(img, patchsize)
+    print("demo-GradientHistogramSpan doing...")
+    q2 = GradientHistogramSpan.GradientHistogramSpan(img, patchsize)
+    print("demo-LocalPowerSpectrumSlope doing...")
+    q3 = LocalPowerSpectrumSlope.LocalPowerSpectrumSlope(img, patchsize)
+
+    data      = np.zeros((datasize,3))
+    data[:,0] = np.ravel(q1[y_start:y_end+1,x_start:x_end+1])
+    data[:,1] = np.ravel(q2[y_start:y_end+1,x_start:x_end+1])
+    data[:,2] = np.ravel(q3[y_start:y_end+1,x_start:x_end+1])
+
+    x = posterior(data,params,prior,11)
+    x = np.pad(x.reshape(im_height-2*offset,im_width-2*offset),offset,'reflect')
+
+    return x
 
 
 if __name__=='__main__':
