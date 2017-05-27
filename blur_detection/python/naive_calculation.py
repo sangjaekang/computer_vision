@@ -127,17 +127,19 @@ def q3(img_nums, patchsize):
 
 if __name__ == '__main__' :
 
-    img_nums = list(range(1,21))
+    img_nums = list(range(12,21))
 
-    q1_pc = Process(target = q1, args= (img_nums,11))
-    q2_pc = Process(target = q2, args = (img_nums,11))
-    q3_pc = Process(target = q3, args= (img_nums,11))
+    q1_pc = Process(target = q3, args= ([17],11))
+    q2_pc = Process(target = q3, args = ([18],11))
+    q3_pc = Process(target = q3, args= ([19],11))
+    q4_pc = Process(target = q3, args = ([20],11))
 
     q1_pc.start()
     q2_pc.start()
     q3_pc.start()
+    q4_pc.start()
 
     q1_pc.join()
     q2_pc.join()
     q3_pc.join()
-
+    q4_pc.join()
