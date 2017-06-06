@@ -71,9 +71,10 @@ def GenerateSf(im, f, C, half_height, half_width):
 
 def rearrange(C, C_new, f):
     data = np.zeros(C_new.shape)
-    idx = 0
+    idx = -1
     for i in range(len(f)):
-        if (C[i] >= C_new[idx+1]):
-            idx = idx+1
-        data[idx] = data[idx] + f[i]
+        if idx < np.size(C_new)-1:
+            if (C[i] >= C_new[idx+1]):
+                idx = idx+1
+            data[idx] = data[idx] + f[i]
     return data

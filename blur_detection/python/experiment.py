@@ -9,40 +9,39 @@ import localBlur
 import blurDetection
 from localBlur import LocalKurtosis, GradientHistogramSpan, LocalPowerSpectrumSlope
 
-image_path = 'input/image/{}'
+image_path = 'input/motion/{}'
 output_path = 'output/{}/'
 output_file = 'output/{}/{}_{}.jpg'
 
 def multi(queue):
     while not queue.empty():
-        image,prior,patchsize,out_file = queue.get()
+        image,prior,patchsize,out_path = queue.get()
         print("{}-multi start".format(image))
         image_file = image_path.format(image)
-        blurDetection.experiment(image_file,prior,patchsize,out_file)
+        blurDetection.main(image_file,prior,patchsize,out_path)
 
 if __name__ == '__main__' :
 
-    input_list = os.listdir('input/image/')
-    patchsize_list = [11,13,15,17,19]
-    prior_list = [0.1,0.3,0.5,0.7,0.9]
+    input_list = os.listdir('input/motion/')
 
-    q = Queue(600)
+    q = Queue(300)
 
     # make path
-    for image in input_list:
-        image_name = image.split('.')[0]
-        if not os.path.exists(output_path.format(image_name)):
-            os.makedirs(output_path.format(image_name))
+    if not os.path.exists('output/kurtosis'):
+        os.makedirs('output/kurtosis')
+    if not os.path.exists('output/histogram'):
+        os.makedirs('output/histogram')
+    if not os.path.exists('output/power'):
+        os.makedirs('output/power')
+    if not os.path.exists('output/naive'):
+        os.makedirs('output/naive')
 
     # experiment parameter queue
     for image in input_list:
-        for p in patchsize_list:
-            for i in prior_list:
-                image_name = image.split('.')[0]
-                patchsize = p
-                prior_set  = [i,1.0-i]
-                output_name = output_file.format(image_name,str(patchsize),str(int(i*10)))
-                q.put([image,[i,1-i],p,output_name])
+        image_name = image.split('.')[0]
+        patchsize = 11
+        prior_set  = [0.6630,0.3370]
+        q.put([image,prior_set,patchsize,'output/'])
 
 
     q1_pc = Process(target = multi, args = (q,))

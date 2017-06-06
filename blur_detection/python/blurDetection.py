@@ -23,19 +23,27 @@ def main(raw_image, prior, patchsize, output_path):
 
     print("{}-Localkurtosis doing...".format(raw_image))
     q1 = LocalKurtosis.LocalKurtosis(img, patchsize)
+    output_file = output_path + 'kurtosis/' + raw_image.split('\\')[-1]
+    cv2.imwrite(output_file,q1)
+
     print("{}-GradientHistogramSpan doing...".format(raw_image))
     q2 = GradientHistogramSpan.GradientHistogramSpan(img, patchsize)
+    output_file = output_path + 'histogram/' + raw_image.split('\\')[-1]
+    cv2.imwrite(output_file,q2)
+
     print("{}-LocalPowerSpectrumSlope doing...".format(raw_image))
     q3 = LocalPowerSpectrumSlope.LocalPowerSpectrumSlope(img, patchsize)
+    output_file = output_path + 'power/' + raw_image.split('\\')[-1]
+    cv2.imwrite(output_file,q3)
 
     data = np.zeros((datasize,3))
     data[:,0] = np.ravel(q1[y_start:y_end+1,x_start:x_end+1])
     data[:,1] = np.ravel(q2[y_start:y_end+1,x_start:x_end+1])
     data[:,2] = np.ravel(q3[y_start:y_end+1,x_start:x_end+1])
 
-    x = posterior(data,params,prior,11)
+    x = posterior(data,params,prior,patchsize)
     x = np.pad(x.reshape(im_height-2*offset,im_width-2*offset),offset,'reflect')
-    output_file = output_path + raw_image.split('\\')[-1]
+    output_file = output_path + 'naive/' + raw_image.split('\\')[-1]
     cv2.imwrite(output_file,x)
 
     return x
@@ -90,7 +98,7 @@ def demo(raw_image, prior, patchsize):
     data[:,1] = np.ravel(q2[y_start:y_end+1,x_start:x_end+1])
     data[:,2] = np.ravel(q3[y_start:y_end+1,x_start:x_end+1])
 
-    x = posterior(data,params,prior,11)
+    x = posterior(data,params,prior,patchsize)
     x = np.pad(x.reshape(im_height-2*offset,im_width-2*offset),offset,'reflect')
 
     return x
@@ -117,7 +125,7 @@ def experiment(raw_image, prior, patchsize,output_file):
     data[:,1] = np.ravel(q2[y_start:y_end+1,x_start:x_end+1])
     data[:,2] = np.ravel(q3[y_start:y_end+1,x_start:x_end+1])
 
-    x = posterior(data,params,prior,11)
+    x = posterior(data,params,prior,patchsize)
     x = np.pad(x.reshape(im_height-2*offset,im_width-2*offset),offset,'reflect')
     cv2.imwrite(output_file,x)
 
@@ -130,14 +138,14 @@ if __name__=='__main__':
         if not os.path.exists('output'):
             os.mkdir('output')
         prior = [float(sys.argv[2]),float(sys.argv[3])]
-        patchsize = sys.argv[4]
+        patchsize = int(sys.argv[4])
         sys.exit(main(sys.argv[1], prior, patchsize, 'output/'))
 
     elif len(sys.argv) == 6:
         if not os.path.exists(sys.argv[3]):
             os.mkdir(sys.argv[3])
         prior = [float(sys.argv[2]),float(sys.argv[3])]
-        patchsize = sys.argv[4]
+        patchsize = int(sys.argv[4])
         output_location = sys.argv[5]
         sys.exit(main(sys.argv[1], prior, patchsize, output_location))
     else :
