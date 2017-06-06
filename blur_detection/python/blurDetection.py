@@ -11,12 +11,9 @@ params = [[(1.03836469274083,0.360097973190199),(0.947234770222116,0.44188960632
 [(0.089113883910261,0.0796449095925369),(0.0259784177855934,0.0357503808612129)],
 [(-26.358860419625,1.98849960841472),(-28.3796098948851,3.004809639)]]
 
-prior = [0.3,0.7]
-
-def main(raw_image, gt_image, output_path):
+def main(raw_image, prior, patchsize, output_path):
     img = cv2.imread(raw_image, cv2.IMREAD_GRAYSCALE)
     img = cv2.normalize(img.astype('double'), None, 0.0, 1.0, cv2.NORM_MINMAX)
-    patchsize = 11
 
     im_height, im_width = img.shape
     offset = int((patchsize -1)/2)
@@ -38,7 +35,7 @@ def main(raw_image, gt_image, output_path):
 
     x = posterior(data,params,prior,11)
     x = np.pad(x.reshape(im_height-2*offset,im_width-2*offset),offset,'reflect')
-    output_file = output_path + raw_image.split('/')[-1]
+    output_file = output_path + raw_image.split('\\')[-1]
     cv2.imwrite(output_file,x)
 
     return x
@@ -71,10 +68,9 @@ def posterior(data, params, prior, patchsize):
     return result
 
 
-def demo(raw_image):
+def demo(raw_image, prior, patchsize):
     img = cv2.cvtColor(raw_image, cv2.COLOR_BGR2GRAY)
     img = cv2.normalize(img.astype('double'), None, 0.0, 1.0, cv2.NORM_MINMAX)
-    patchsize = 11
 
     im_height, im_width = img.shape
     offset = int((patchsize -1)/2)
@@ -99,17 +95,50 @@ def demo(raw_image):
 
     return x
 
+def experiment(raw_image, prior, patchsize,output_file):
+    img = cv2.imread(raw_image, cv2.IMREAD_GRAYSCALE)
+    img = cv2.normalize(img.astype('double'), None, 0.0, 1.0, cv2.NORM_MINMAX)
+
+    im_height, im_width = img.shape
+    offset = int((patchsize -1)/2)
+    x_start = offset+1; x_end = im_width-offset;
+    y_start = offset+1; y_end = im_height-offset;
+    datasize = (x_end-x_start+1)*(y_end-y_start+1)
+
+    print("{}-Localkurtosis doing...".format(raw_image))
+    q1 = LocalKurtosis.LocalKurtosis(img, patchsize)
+    print("{}-GradientHistogramSpan doing...".format(raw_image))
+    q2 = GradientHistogramSpan.GradientHistogramSpan(img, patchsize)
+    print("{}-LocalPowerSpectrumSlope doing...".format(raw_image))
+    q3 = LocalPowerSpectrumSlope.LocalPowerSpectrumSlope(img, patchsize)
+
+    data = np.zeros((datasize,3))
+    data[:,0] = np.ravel(q1[y_start:y_end+1,x_start:x_end+1])
+    data[:,1] = np.ravel(q2[y_start:y_end+1,x_start:x_end+1])
+    data[:,2] = np.ravel(q3[y_start:y_end+1,x_start:x_end+1])
+
+    x = posterior(data,params,prior,11)
+    x = np.pad(x.reshape(im_height-2*offset,im_width-2*offset),offset,'reflect')
+    cv2.imwrite(output_file,x)
+
+    return x
+
 
 if __name__=='__main__':
 
-    if len(sys.argv) == 2:
+    if len(sys.argv) == 5:
         if not os.path.exists('output'):
             os.mkdir('output')
-        sys.exit(main(sys.argv[1], sys.argv[2],'output/'))
+        prior = [float(sys.argv[2]),float(sys.argv[3])]
+        patchsize = sys.argv[4]
+        sys.exit(main(sys.argv[1], prior, patchsize, 'output/'))
 
-    elif len(sys.argv) == 3 :
+    elif len(sys.argv) == 6:
         if not os.path.exists(sys.argv[3]):
             os.mkdir(sys.argv[3])
-        sys.exit(main(sys.argv[1], sys.argv[2],sys.argv[3]))
+        prior = [float(sys.argv[2]),float(sys.argv[3])]
+        patchsize = sys.argv[4]
+        output_location = sys.argv[5]
+        sys.exit(main(sys.argv[1], prior, patchsize, output_location))
     else :
-        print("argv 1 : raw_image, argv 2 : ground_truth image, argv 3 : output path for saving")
+        print("argv 1 : raw_image, argv 2 : prior possibility for none blur, argv 3 : prior possibility for blur, argv4 : patchsize, argv 5 : output path for saving")
